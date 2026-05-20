@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local AI Disease Prediction System</title>
+    
+    <!-- Link to Custom Premium Stylesheet -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    
+    <!-- FontAwesome Icons for modern aesthetic -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- Header & Status Indicators -->
+        <header>
+            <div class="logo-section">
+                <h1>
+                    <span class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></span>
+                    Aegis AI
+                </h1>
+                <p>Offline Medical Prediction & Diagnosis Assistant</p>
+            </div>
+            
+            <div class="header-controls">
+                <!-- Ollama Connection Status Indicator -->
+                <div id="ollama-status" class="status-pill">
+                    <span class="status-dot pulse-dot"></span>
+                    <span class="status-text">Checking Ollama...</span>
+                </div>
+                
+                <!-- Dark / Light Theme Toggle -->
+                <button id="theme-toggle" class="theme-btn" title="Toggle Light/Dark Mode">
+                    <i class="fa-solid fa-sun"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Error Card for troubleshooting -->
+        <div id="connection-error" class="error-card">
+            <h5><i class="fa-solid fa-circle-exclamation"></i> Action Required: Local AI Offline</h5>
+            <span id="error-message">Could not connect to Ollama local server.</span>
+            <div style="margin-top: 10px; font-weight: 500;">Troubleshooting Steps:</div>
+            <ul id="error-trouble">
+                <li>Make sure Ollama is installed on your computer (Download from <a href="https://ollama.com" target="_blank" style="color: var(--primary);">ollama.com</a>).</li>
+                <li>Start the Ollama application or run <code>ollama serve</code> in your command prompt.</li>
+                <li>Ensure you have pulled the model by running <code>ollama pull gemma:2b</code>.</li>
+            </ul>
+        </div>
+
+        <!-- Main Workspace Grid -->
+        <main class="main-grid">
+            
+            <!-- Left Card: Symptom Intake -->
+            <section class="card" id="input-card">
+                <div class="card-title">
+                    <i class="fa-solid fa-stethoscope" style="color: var(--primary);"></i>
+                    Symptom Intake Panel
+                </div>
+                
+                <p style="color: var(--text-secondary); font-size: 14px; margin-top: -10px;">
+                    Select pre-defined symptoms, type in the search bar, or use voice input to list what you are experiencing.
+                </p>
+
+                <!-- Custom Voice / Search Bar Input -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="symptom-search" placeholder="Type a symptom (e.g. fever, headache)..." autocomplete="off">
+                        
+                        <!-- Voice Command Button -->
+                        <button id="voice-btn" class="voice-input-btn" title="Speak symptoms (Voice Input)">
+                            <i class="fa-solid fa-microphone"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Recording Waves Overlay -->
+                    <div id="recording-overlay" class="recording-overlay">
+                        <div class="wave-container">
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                            <span class="wave-bar"></span>
+                        </div>
+                        <span style="color: var(--text-primary); font-size: 13px; font-weight: 500;">Listening for symptoms... Click mic to stop</span>
+                    </div>
+
+                    <!-- Autocomplete Dropdown List -->
+                    <div id="suggestions" class="suggestions-dropdown"></div>
+                </div>
+
+                <!-- Selected Symptoms Tags Box -->
+                <div class="selected-tags-container" id="tags-box">
+                    <span class="empty-tag-placeholder">No symptoms selected yet. Choose from below or type above.</span>
+                </div>
+
+                <!-- Quick Predefined Symptoms Grid -->
+                <div class="predefined-section">
+                    <h4>Common Symptoms</h4>
+                    <div class="predefined-grid" id="predefined-grid">
+                        <!-- Will be populated dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Action Button Group -->
+                <div class="action-buttons">
+                    <button id="clear-all-btn" class="btn btn-secondary" title="Clear selection">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                    <button id="predict-btn" class="btn btn-primary" disabled>
+                        <i class="fa-solid fa-brain"></i> Analyze & Predict
+                    </button>
+                </div>
+            </section>
+
+            <!-- Right Card: Diagnosis & Chat View Tabs -->
+            <section class="card" id="output-card">
+                
+                <!-- Tab Switching Headers -->
+                <div class="tab-headers">
+                    <button class="tab-btn active" data-tab="result-tab">
+                        <i class="fa-solid fa-file-medical-alt"></i> Diagnosis Prediction
+                    </button>
+                    <button class="tab-btn" data-tab="chat-tab">
+                        <i class="fa-solid fa-comments"></i> AI Health Chat
+                    </button>
+                </div>
+
+                <div class="tab-content">
+                    
+                    <!-- Tab Panel A: Diagnosis Prediction Result -->
+                    <div class="tab-pane active" id="result-tab">
+                        
+                        <!-- Initial Prompt State -->
+                        <div class="result-placeholder" id="result-placeholder">
+                            <span class="placeholder-icon"><i class="fa-solid fa-shield-virus"></i></span>
+                            <h3>Awaiting Symptom Analysis</h3>
+                            <p>Select your symptoms on the left and click "Analyze & Predict" to generate an offline AI clinical report.</p>
+                        </div>
+
+                        <!-- Skeleton Scanning State -->
+                        <div class="loading-view" id="loading-view">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div class="skeleton skeleton-title"></div>
+                                <div class="skeleton skeleton-badge" style="border-radius: 20px;"></div>
+                            </div>
+                            <div class="skeleton skeleton-text-1"></div>
+                            <div class="skeleton skeleton-text-2"></div>
+                            <div class="skeleton skeleton-text-3"></div>
+                            <div class="skeleton skeleton-card"></div>
+                            <div class="skeleton skeleton-card"></div>
+                        </div>
+
+                        <!-- Actual Result Details View -->
+                        <div class="result-view" id="result-view">
+                            <div class="disease-header">
+                                <div class="disease-name-wrapper">
+                                    <span style="font-size: 12px; color: var(--primary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Most Likely Diagnosis</span>
+                                    <h2 id="result-disease">Flu / Influenza</h2>
+                                </div>
+                                <span id="result-confidence" class="confidence-badge medium">Medium Confidence</span>
+                            </div>
+
+                            <div class="explanation-section">
+                                <p id="result-explanation">
+                                    The combination of symptoms matches closely with general influenza or common respiratory viral infections.
+                                </p>
+                            </div>
+
+                            <div class="precautions-section">
+                                <h4>Immediate Care & Precautions</h4>
+                                <div id="result-precautions" class="precautions-grid">
+                                    <!-- Populated dynamically via JS -->
+                                </div>
+                            </div>
+
+                            <!-- Health Disclaimer Warning Box -->
+                            <div class="disclaimer-card">
+                                <span class="disclaimer-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+                                <div>
+                                    <strong>Disclaimer:</strong> This local AI model provides general educational information and diagnostic assistance. It is NOT a professional medical diagnosis or a substitute for expert medical counseling. Seek immediate emergency healthcare if symptoms are severe.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tab Panel B: Healthcare chatbot -->
+                    <div class="tab-pane" id="chat-tab">
+                        <div class="chat-container">
+                            <div class="chat-messages" id="chat-messages">
+                                <div class="chat-bubble assistant">
+                                    Hello! I am Aegis, your local offline AI health companion. You can ask me follow-up questions about symptoms, healthy routines, home remedies, or when you should see a doctor.
+                                </div>
+                            </div>
+                            
+                            <div class="chat-input-area">
+                                <input type="text" id="chat-input" placeholder="Ask follow-up questions (e.g. what should I eat during fever?)" autocomplete="off">
+                                <button id="chat-send-btn" class="chat-send-btn" title="Send message">
+                                    <i class="fa-solid fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Diagnostics Search History Panel -->
+        <section class="history-section">
+            <div class="history-header">
+                <h3>
+                    <i class="fa-solid fa-history" style="color: var(--primary);"></i>
+                    Local Diagnosis History
+                </h3>
+                <button id="clear-history-btn" class="clear-history-btn" title="Wipe all local history">
+                    <i class="fa-solid fa-circle-xmark"></i> Clear All History
+                </button>
+            </div>
+            
+            <div class="history-list" id="history-list">
+                <!-- History Cards populated dynamically via JS -->
+            </div>
+        </section>
+
+        <!-- Footer section -->
+        <footer>
+            <p>
+                Aegis AI Clinical System &copy; 2026. Powered by <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI</a> &amp; <a href="https://ollama.com/" target="_blank">Ollama Local LLMs</a>. Completely private &amp; offline.
+            </p>
+        </footer>
+    </div>
+
+    <!-- Link to main JavaScript script -->
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
