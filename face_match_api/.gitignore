@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# dotenv
+.env
+
+# VS Code
+.vscode/
+
+# Byte-compiled
+*.py[cod]
