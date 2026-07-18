@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { FiMapPin, FiPhone, FiMail } from 'react-icons/fi'
-import { COMPANY } from '../data/company'
+import { FaWhatsapp } from 'react-icons/fa'
+import { COMPANY, telHref, waHref } from '../data/company'
 import './Footer.css'
 
 export default function Footer() {
@@ -50,7 +51,8 @@ export default function Footer() {
           <h4>Contact</h4>
           <ul className="contact">
             <li><FiMapPin /> {COMPANY.address.line1}, {COMPANY.address.line2}, {COMPANY.address.city} – {COMPANY.address.pin}</li>
-            <li><FiPhone /> {COMPANY.phones[0]}<br/><span style={{marginLeft: 22}}>{COMPANY.phones[1]}</span></li>
+            <li><FiPhone /> <a href={telHref(COMPANY.phone)}>{COMPANY.phone}</a></li>
+            <li><FaWhatsapp style={{ color: '#25D366' }} /> <a href={waHref(COMPANY.whatsapp)} target="_blank" rel="noreferrer">{COMPANY.whatsapp}</a></li>
             <li><FiMail /> {COMPANY.email}</li>
           </ul>
         </div>
