@@ -166,10 +166,6 @@ export default function Payment() {
                     </div>
                   </div>
 
-                  <a href={upiUrl} className="btn btn-primary open-upi">
-                    <FiSmartphone /> Open in UPI App
-                  </a>
-
                   <div style={{ marginTop: 22 }}>
                     <label>Enter UTR / Transaction ID after paying</label>
                     <input
